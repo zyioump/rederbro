@@ -1,0 +1,11 @@
+{
+    "server" : {
+        "server_url" : "127.0.0.1",
+        "server_port" : 9876,
+        "bind_address" : "",
+        "max_connection" : 100,
+        "delay": 1
+    },
+    "arduino_serial":"/dev/ttyACM0",
+    "relay_pin":26
+}
