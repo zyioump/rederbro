@@ -1,136 +1,54 @@
 from rederbro.server.server import Server
+from rederbro.utils.arduino import Arduino
 import time
-import serial
 
 try:
-    from RPi.GPIO import GPIO as gpio
+    from RPi.GPIO import GPIO
 except:
     pass
 
 class GoproServer(Server):
-    def takePic(self, force=False):
-        if not self.fakeMode:
-            if force or self.goproOn:
-                self.arduino.write("T")
-                self.logger.debug("T send to arduino")
+    def turnGopro(self, state):
+        """
+        Switch gopro to state value
+        """
+        self.logger.info("Turn gopro {}".format(state))
 
-                answer = b""
-                while answer not in (b'ERROR\r\n',b'TAKEN\r\n'):
-                    time.sleep(0.5)
-                    answer = self.arduino.readline()
-                    self.logger.debug("{} receive from arduino".format(answer))
+    def turnRelay(self, state):
+        """
+        Switch relay to state value
+        """
+        self.logger.info("Turn relay {}".format(state))
 
-                if answer is b'TAKEN\r\n':
-                    self.logger.info("Gopro took picture")
-                    return True
-                else:
-                    goproStatus = self.arduino.readline().decode("ascii")
-                    self.logger.debug("{} receive from arduino".format(goproStatus))
-                    goproFailed = []
-
-                    for i in range(0, len(goproStatus)):
-                        if goproStatus[i] is "1":
-                            goproFailed.append(i)
-
-                    self.logger.error("Gopro {} failed to take picture".format(goproFailed))
-                    return False
-        else:
-            self.logger.info("Gopro took picture (FakeMode)")
-            return True
-
-    def changeMode(self, force=False):
-        if not self.fakeMode:
-            if force or self.goproOn:
-                self.arduino.write(b"M")
-                self.logger.debug("M send to arduino")
-
-                while self.arduino.readline() is not b"PHOTO_MODE\r\n":
-                    self.logger.debug("{} receive from arduino".format(self.arduino.readline()))
-                    time.sleep(0.5)
-
-                self.logger.info("Gopro changed mode")
-                return True
-
-        else:
-            self.logger.info("Gopro changed mode (FakeMode)")
-            return True
-
-    def turnGopro(self, state, force=False, full=True):
-        if not self.fakeMode:
-            if state:
-                error = 0
-
-                if not self.relayOn or force:
-                    self.turnRelay(True)
-
-                self.arduino.write(b"I")
-                self.logger.debug("{} send to arduino".format(b"I"))
-
-                while self.arduino.readline() is not b'ON\n':
-                    time.sleep(0.5)
-                    self.logger.debug("{} receive from arduino".format(self.arduino.readline()))
-
-
-                if full:
-                    error += 1 if not self.changeMode(force=True) else 0
-                    error += 1 if not self.takePic(force=True) else 0
-
-                if error is not 0:
-                    self.logger.error("Gopro failed to turn on")
-                    self.goproOn = False
-                    return False
-                else:
-                    self.logger.info("Gopro turned on")
-                    self.goproOn = True
-                    return True
-            else:
-                error = 0
-
-                if force:
-                    error += 1 if not self.turnGopro(True, full=False) else 0
-
-                if (force or self.goproOn) and error is 0:
-                    self.arduino.write(b"O")
-                    self.logger.debug("O send to arduino")
-                    while self.arduino.readline() is not b"OFF\r\n":
-                        self.logger.debug("{} receive from arduino".format(self.arduino.readline()))
-                        time.sleep(0.5)
-
-                    self.logger.info("Gopro turned off")
-                    return True
-
-                else:
-                    self.logger.error("Gopro failed to turned off")
-                    return False
-        else:
-            self.logger.info("Gopro turned {} (FakeMode)".format(state))
-            self.goproOn = state
-            return True
-
-    def turnRelay(self, state, force=False):
-        if not self.fakeMode:
-            if state:
-                if force or not self.relayOn:
-                    gpio.output(self.config["relay_pin"], GPIO.HIGH)
-                    self.logger.debug("Pin {} put HIGH".format(self.config["relay_pin"]))
-            else:
-                if not force:
-                    self.turnGopro(False)
-
-                if force or self.relayOn:
-                    gpio.output(self.config["relay_pin"], GPIO.LOW)
-                    self.logger.debug("Pin {} put LOW".format(self.config["relay_pin"]))
-        else:
-            self.logger.info("Relay turned {} (FakeMode)".format(state))
+        if self.fakeMode:
+            #when fake mode is on
             self.relayOn = state
+            self.logger.info("Turned relay {} (fake mode)".format(state))
 
-    def start(self):
-        try:
-            self.arduino = serial.Serial(self.config["arduino_serial"])
-        except:
-            self.logger.error("No arduino pluged --> fake mode on")
-            self.setFakeMode(True)
+        else:
+            #when fake mode is off
+            if state:
+                GPIO.output(self.config["relay_pin"], GPIO.HIGH)
+            else:
+                GPIO.output(self.config["relay_pin"], GPIO.LOW)
 
+            self.logger.info("Turned relay {}".format(state))
+
+    def takePic(self):
+        """
+        Ask arduino to take picture
+        """
+        self.logger.info("Take picture")
+
+    def __init__(self, config):
+        #Use the __init__ of the server class
+        Server.__init__(self, config, "gopro")
+
+        #dict who link a command to a method
+        # a : (b, c)
+        # a --> command name
+        # b --> method who can treat the command
+        # c --> argument for the method
         self.command = {\
             "debugOn" : (self.setDebug, True),\
             "debugOff" : (self.setDebug, False),\
@@ -144,30 +62,44 @@ class GoproServer(Server):
         }
 
         try:
+            #init arduino
+            self.arduino = Arduino(self.config, self.logger)
+        except:
+            self.logger.error("Can't connect to arduino")
+            self.setFakeMode(True)
+
+        try:
+            #init GPIO
             GPIO.setmode(GPIO.BOARD)
             GPIO.setwarnings(False)
             GPIO.setup(self.config["relay_pin"], GPIO.OUT)
         except:
-            self.logger.error("Not on a rpi --> fake mode on")
-            self.setFakeMode(True)
+            self.logger.error("Not on a rpi")
+            if not self.fakeMode:
+                self.setFakeMode(True)
 
-
-        self.turnGopro(False, force=True)
-        self.turnRelay(False, force=True)
+        #switch off relay to be sure that gopro are off
+        self.turnRelay(False)
 
         self.goproOn = False
-        self.relayOn = True
+        self.relayOn = False
 
-        self.logger.info("Server started")
+    def start(self):
+        self.logger.warning("Server started")
         while self.running:
+            #check data send by main server
             text = self.pipe.readText()
 
             for line in text:
+                #if method who treat the command take an argument
                 if self.command[line][1] is not None:
+                    #treat command
                     self.command[line][0](self.command[line][1])
                 else:
+                    #treat command
                     self.command[line][0]()
 
+            #if command receive by main server is not empty clear the pipe
             if len(text) is not 0:
                 self.pipe.clean()
 

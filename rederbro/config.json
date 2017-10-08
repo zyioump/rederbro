@@ -6,6 +6,9 @@
         "max_connection" : 100,
         "delay": 1
     },
-    "arduino_serial":"/dev/ttyACM0",
+    "arduino" : {
+      "serial":"/dev/ttyACM0",
+      "time_out":10
+    },
     "relay_pin":26
 }
