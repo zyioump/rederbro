@@ -10,15 +10,31 @@ class Config():
         self.mainCommand = ["server", "sensors", "gopro"]
 
         #commandArgs --> a dict who contain all sub command of a command and if it take an argument
-        # a : ((b, c), (d, f), ...)
+        # a : ((b, (c, d)), ...)
         # a --> command name
         # b --> sub command name
         # c --> if sub command take an argument
-        # d --> sub command name
-        # f --> if sub command take an argument
+        # d --> sub command argument
         # ...
         # if sub commmand take an argument it must be on-->True or off-->False
-        self.commandArgs = {"gopro" : (("takepic", False), ("relay", True), ("debug", True), ("fake", True), ("", True), ("clear", False)), "sensors" : (("debug", True), ("fake", True)), "server" : (("main", True), ("sensors", True), ("gopro", True))}
+        self.commandArgs = {\
+            "gopro" : (\
+                ("takepic", (False, None)),\
+                ("relay", (True, "STATUS")),\
+                ("debug", (True, "STATUS")),\
+                ("fake", (True, "STATUS")),\
+                ("", (True, "STATUS")),\
+                ("clear", (False, None))),\
+            "sensors" : (\
+                ("debug", (True, "on")),\
+                ("fake", (True, "on")),\
+                ("automode", (True, "on")),\
+                ("distance", (True, "METER"))),\
+            "server" : (\
+                ("main", (True, "on")),\
+                ("sensors", (True, "on")),\
+                ("gopro", (True, "on")))\
+        }
 
     def loadConf(self):
         """
@@ -43,20 +59,19 @@ class Config():
                     #args[0] can be empty when there are no sub commmand
                     if subcommand[0] is "" or args[subcommand[0]]:
                         #some sub command take no argument like takepic
-                        if not subcommand[1]:
+                        if not subcommand[1][0]:
                             #return value --> (a (b, c))
                             # a --> command name
                             # b --> sub command name or command name when sub command name is empty
                             # c --> argument of sub command here True cause sub command take no argument
                             return (command, (subcommand[0] if subcommand[0] is not "" else command, True))
                         else:
-                            #when sub command take argument we must check if on or off is set in docopt argument
-                            if args["on"] or args["off"]:
-                                #return value --> (a (b, c))
-                                # a --> command name
-                                # b --> sub command name or command name when sub command name is empty
-                                # c --> argument of sub command here value of "on" in docopt argument
-                                return (command, (subcommand[0] if subcommand[0] is not "" else command, args["on"]))
+                            #return value --> (a (b, c))
+                            # a --> command name
+                            # b --> sub command name or command name when sub command name is empty
+                            # c --> argument of sub command
+                            return (command, (subcommand[0] if subcommand[0] is not "" else command, args[subcommand[1][1]]))
+
 
     def getConf(self):
         return self.config

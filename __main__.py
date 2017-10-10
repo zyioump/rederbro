@@ -11,20 +11,19 @@ Usage:
   opv server main on
   opv server gopro on
   opv server sensors on
-  opv gopro relay on
-  opv gopro relay off
-  opv gopro on
-  opv gopro off
+  opv gopro relay STATUS
+  opv gopro STATUS
   opv gopro takepic
-  opv gopro debug on
-  opv gopro debug off
-  opv gopro fake off
-  opv gopro fake on
+  opv gopro debug STATUS
+  opv gopro fake STATUS
   opv gopro clear
   opv sensors debug on
   opv sensors debug off
   opv sensors fake on
   opv sensors fake off
+  opv sensors automode on
+  opv sensors automode off
+  opv sensors distance METER
 
 Options:
   -h --help     Show this screen.
