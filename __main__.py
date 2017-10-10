@@ -20,6 +20,7 @@ Usage:
   opv gopro debug off
   opv gopro fake off
   opv gopro fake on
+  opv gopro clear
   opv sensors debug on
   opv sensors debug off
   opv sensors fake on

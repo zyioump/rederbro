@@ -10,7 +10,7 @@ class Arduino():
         self.config = config
         self.logger = logger
 
-        self.serial = serial.Serial(config["arduino"]["serial"])
+        self.serial = serial.Serial(config["arduino"]["serial"], timeout=0.5)
         self.time_out = config["arduino"]["time_out"]
 
     def sendMsg(self, msg, correctAnswer):
@@ -37,21 +37,34 @@ class Arduino():
         Check if it is correct or not and return it
         """
 
-        checkNB = self.time_out / 0.5
+        checkNB = int(self.time_out / 0.5)
         #we will check checkNB time the answer before time out
 
 
         for i in range(checkNB):
-            #the answer must be decode cause arduino send byte
-            answer = self.serial.readline().decode()
+            answer = self.serial.readline()
             self.logger.debug("{} receive from arduino".format(answer))
 
             #if the answer is realy an answer
-            if answer is not None or answer is not "":
+            if answer != b'':
                 #stop waiting for an answer
                 break
 
-            time.sleep(0.5)
+        if answer == b'':
+            self.logger.debug("Timed out")
 
-        #return if it an correct answer
-        return (False if answer is correctAnswer else True, answer)
+        #the answer must be decode cause arduino send byte
+        answer = answer.decode()
+
+        error = True
+
+        if answer == correctAnswer:
+            error = False
+
+        return (error, answer)
+
+    def clear(self):
+        self.logger.info("Start clear serial")
+        error, answer = self.waitAnswer("")
+        self.logger.debug("{} was in serial".format(answer))
+        self.logger.info("Serial cleared")
