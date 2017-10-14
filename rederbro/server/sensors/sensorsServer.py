@@ -20,7 +20,7 @@ class SensorsServer(Server):
         else:
             msg = ""
             while not "\r\n" in msg:
-                msg += self.serial.read().encode()
+                msg += self.serial.read().decode()
             self.logger.debug(msg)
 
     def __init__(self, config):
