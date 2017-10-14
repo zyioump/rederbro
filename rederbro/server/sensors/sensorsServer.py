@@ -18,7 +18,10 @@ class SensorsServer(Server):
             return [0, 0, 0]
 
         else:
-            print(self.serial.read())
+            msg = ""
+            while "\r\n" in msg:
+                msg += self.serial.read()
+                print(msg)
 
     def __init__(self, config):
         Server.__init__(self, config, "sensors")
