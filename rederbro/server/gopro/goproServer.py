@@ -181,7 +181,7 @@ class GoproServer(Server):
 
         try:
             #init GPIO
-            GPIO.setmode(GPIO.BOARD)
+            GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
             GPIO.setup(self.config["relay_pin"], GPIO.OUT)
         except:
