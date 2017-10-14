@@ -28,7 +28,7 @@ class GoproServer(Server):
 
             else:
                 #when fake mode is off
-                if state:
+                if state == "on":
                     #turn on
                     error, answer = self.arduino.sendMsg("I", "ON\r\n")
 
@@ -91,7 +91,7 @@ class GoproServer(Server):
 
         else:
             #when fake mode is off
-            if state:
+            if state == "on":
                 GPIO.output(self.config["relay_pin"], GPIO.HIGH)
                 self.relayOn = True
             else:

@@ -41,7 +41,7 @@ class Server():
         """
         Allow you to change the logger level to debug or to info
         """
-        if debug:
+        if debug == "on":
             self.logger.setLevel(logging.DEBUG)
             self.logger.info("Debug mode set on")
         else:
@@ -52,7 +52,7 @@ class Server():
         """
         Change fake mode
         """
-        self.fakeMode = fakeMode
+        self.fakeMode = True if fakeMode == "on" else False
         self.logger.info("Fake mode set to {}".format(self.fakeMode))
 
     def start(self):
@@ -70,6 +70,7 @@ class Server():
 
         for line in text:
             line = json.loads(line)
+            print(line)
             #if method who treat the command take an argument
             try:
                 if self.command[line["command"]][1]:
