@@ -20,15 +20,15 @@ class Config():
         self.commandArgs = {\
             "gopro" : (\
                 ("takepic", (False, None)),\
+                ("clear", (False, None)),\
                 ("relay", (True, "STATUS")),\
                 ("debug", (True, "STATUS")),\
                 ("fake", (True, "STATUS")),\
-                ("", (True, "STATUS")),\
-                ("clear", (False, None))),\
+                ("", (True, "STATUS"))),\
             "sensors" : (\
-                ("debug", (True, "on")),\
-                ("fake", (True, "on")),\
-                ("automode", (True, "on")),\
+                ("debug", (True, "STATUS")),\
+                ("fake", (True, "STATUS")),\
+                ("automode", (True, "STATUS")),\
                 ("distance", (True, "METER"))),\
             "server" : (\
                 ("main", (True, "on")),\
@@ -57,20 +57,21 @@ class Config():
                 for subcommand in self.commandArgs[command]:
                     #check if sub command is set in docopt argument
                     #args[0] can be empty when there are no sub commmand
-                    if subcommand[0] is "" or args[subcommand[0]]:
+                    if subcommand[0] == "" or args[subcommand[0]]:
                         #some sub command take no argument like takepic
+                        
                         if not subcommand[1][0]:
                             #return value --> (a (b, c))
                             # a --> command name
                             # b --> sub command name or command name when sub command name is empty
                             # c --> argument of sub command here True cause sub command take no argument
-                            return (command, (subcommand[0] if subcommand[0] is not "" else command, True))
+                            return (command, (subcommand[0] if subcommand[0] != "" else command, True))
                         else:
                             #return value --> (a (b, c))
                             # a --> command name
                             # b --> sub command name or command name when sub command name is empty
                             # c --> argument of sub command
-                            return (command, (subcommand[0] if subcommand[0] is not "" else command, args[subcommand[1][1]]))
+                            return (command, (subcommand[0] if subcommand[0] != "" else command, args[subcommand[1][1]]))
 
 
     def getConf(self):

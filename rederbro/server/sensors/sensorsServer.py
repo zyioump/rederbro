@@ -1,4 +1,5 @@
 from rederbro.server.server import Server
+import serial
 
 import time
 
@@ -6,35 +7,33 @@ class SensorsServer(Server):
     def turnAutomode(self, state):
         self.logger.info("Auto mode turned {}".format(state))
 
-    def __init__(self):
+    def setDistance(self, distance):
+        self.distance = distance
+        self.logger.info("Distance between photo set to {}".format(self.distance))
+
+    def getCoord(self):
+        self.logger.info("Get coordonate")
+        if self.fakeMode:
+            self.logger.info("Coordonate : 0, 0, 0 (fake mode)")
+            return [0, 0, 0]
+
+        else:
+            print(self.serial.read())
+
+    def __init__(self, config):
         Server.__init__(self, config, "sensors")
 
         self.command = {\
-        "debugon" : (self.setDebug, True),\
-        "debugoff" : (self.setDebug, False),\
-        "fakeon" : (self.setFakeMode, True),\
-        "fakeoff" : (self.setFakeMode, False),\
-        "automodeon" : (self.turnAutomode, True),\
-        "automodeoff" : (self.turnAutomode, False),\
+            "debug" : (self.setDebug, True),\
+            "fake" : (self.setFakeMode, True),\
+            "automode" : (self.turnAutomode, True),\
+            "distance" : (self.setDistance, True),\
+            "getCoord" : (self.getCoord, False)\
         }
 
-    def start(self):
-        self.logger.warning("Server started")
-        while self.running:
-            #check data send by main server
-            text = self.pipe.readText()
+        self.distance = 5
 
-            for line in text:
-                #if method who treat the command take an argument
-                if self.command[line][1] is not None:
-                    #treat command
-                    self.command[line][0](self.command[line][1])
-                else:
-                    #treat command
-                    self.command[line][0]()
-
-            #if command receive by main server is not empty clear the pipe
-            if len(text) is not 0:
-                self.pipe.clean()
-
-            time.sleep(self.delay)
+        try:
+            self.serial = serial.Serial(port=self.config["gps"]["serial"], baudrate=115200, timeout=1)
+        except:
+            self.setFakeMode(True)

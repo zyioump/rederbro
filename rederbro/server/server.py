@@ -1,5 +1,7 @@
 import os
 import logging
+import time
+import json
 from logging.handlers import RotatingFileHandler
 
 from rederbro.utils.dataSend import DataSend
@@ -53,9 +55,32 @@ class Server():
         self.fakeMode = fakeMode
         self.logger.info("Fake mode set to {}".format(self.fakeMode))
 
-    def start():
+    def start(self):
         """
         Method called by server command
-        Must be overwrited
         """
-        pass
+        self.logger.warning("Server started")
+        while self.running:
+            self.checkCommand()
+            time.sleep(self.delay)
+
+    def checkCommand(self):
+        #check data send by main server
+        text = self.pipe.readText()
+
+        for line in text:
+            line = json.loads(line)
+            #if method who treat the command take an argument
+            try:
+                if self.command[line["command"]][1]:
+                    #treat command
+                    self.command[line["command"]][0](line["args"])
+                else:
+                    #treat command
+                    self.command[line["command"]][0]()
+            except Exception as e:
+                self.logger.error("Unexpecting command")
+
+        #if command receive by main server is not empty clear the pipe
+        if len(text) is not 0:
+            self.pipe.clean()

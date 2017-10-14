@@ -12,17 +12,14 @@ Usage:
   opv server gopro on
   opv server sensors on
   opv gopro relay STATUS
-  opv gopro STATUS
   opv gopro takepic
+  opv gopro clear
+  opv gopro STATUS
   opv gopro debug STATUS
   opv gopro fake STATUS
-  opv gopro clear
-  opv sensors debug on
-  opv sensors debug off
-  opv sensors fake on
-  opv sensors fake off
-  opv sensors automode on
-  opv sensors automode off
+  opv sensors debug STATUS
+  opv sensors fake STATUS
+  opv sensors automode STATUS
   opv sensors distance METER
 
 Options:

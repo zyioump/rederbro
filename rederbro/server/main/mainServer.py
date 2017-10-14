@@ -101,7 +101,7 @@ class MainServer():
                     command = json.loads(command)
 
                     #send commmand to the pipe of the type using datasend
-                    self.pipes[command["type"]].writeLine(command["command"])
+                    self.pipes[command["type"]].writeLine(json.dumps({"command" : command["command"], "args": command["args"]}))
                     self.logger.info("New command : {}".format(command))
                 except Exception as e:
                     #when command receive is not a json

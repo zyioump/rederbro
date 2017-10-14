@@ -8,8 +8,8 @@ class SensorsCommand(Command):
         # b --> sub command argument (True or False)
 
         # type --> command name
-        # command --> sub command name + sub command args 
-        msg = {"type": "sensors", "command" : args[0]+"{}".format(args[1])}
+        # command --> sub command name + sub command args
+        msg = {"type": "sensors", "command" : args[0], "args" : args[1]}
 
         #send command to server using socket
         self.sendMsg(json.dumps(msg))

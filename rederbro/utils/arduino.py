@@ -67,6 +67,6 @@ class Arduino():
 
     def clear(self):
         self.logger.info("Start clear serial")
-        error, answer = self.waitAnswer("", timeout=4)
+        error, answer = self.waitAnswer("", timeout=2)
         self.logger.debug("{} was in serial".format(answer))
         self.logger.info("Serial cleared")

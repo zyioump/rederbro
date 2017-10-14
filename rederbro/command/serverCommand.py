@@ -8,11 +8,11 @@ class ServerCommand(Command):
         # args --> (a, b)
         # a --> sub command name
         # b --> sub command argument (True or False)
-         
+
         self.server = {"main" : MainServer, "sensors" : SensorsServer, "gopro" : GoproServer}
 
 
-        # if sub command arg is True we launch th server
+        # if sub command arg is True we launch the server
         if args[1]:
             serverClass = self.server[args[0]](self.config)
             serverClass.start()

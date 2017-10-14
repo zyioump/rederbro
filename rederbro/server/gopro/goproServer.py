@@ -1,6 +1,5 @@
 from rederbro.server.server import Server
 from rederbro.utils.arduino import Arduino
-import time
 
 try:
     import RPi.GPIO as GPIO
@@ -199,40 +198,12 @@ class GoproServer(Server):
         # a : (b, c)
         # a --> command name
         # b --> method who can treat the command
-        # c --> argument for the method
+        # c --> if there are argument for the method
         self.command = {\
-        "debugon" : (self.setDebug, True),\
-        "debugoff" : (self.setDebug, False),\
-        "fakeon" : (self.setFakeMode, True),\
-        "fakeoff" : (self.setFakeMode, False),\
-        "goproon" : (self.turnGopro, True),\
-        "goprooff" : (self.turnGopro, False),\
-        "relayon" : (self.turnRelay, True),\
-        "relayoff" : (self.turnRelay, False),\
-        "goprotakepic" : (self.takePic, None),\
-        "goproclear" : (self.clear, None)\
+        "debug" : (self.setDebug, True),\
+        "fake" : (self.setFakeMode, True),\
+        "gopro" : (self.turnGopro, True),\
+        "relay" : (self.turnRelay, True),\
+        "takepic" : (self.takePic, False),\
+        "clear" : (self.clear, False)\
         }
-
-    def start(self):
-        self.logger.warning("Server started")
-        while self.running:
-            #check data send by main server
-            text = self.pipe.readText()
-
-            for line in text:
-                #if method who treat the command take an argument
-                try:
-                    if self.command[line][1] is not None:
-                        #treat command
-                        self.command[line][0](self.command[line][1])
-                    else:
-                        #treat command
-                        self.command[line][0]()
-                except:
-                    self.logger.error("Unexpecting command")
-
-            #if command receive by main server is not empty clear the pipe
-            if len(text) is not 0:
-                self.pipe.clean()
-
-            time.sleep(self.delay)
