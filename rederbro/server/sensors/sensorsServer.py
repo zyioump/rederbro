@@ -18,9 +18,14 @@ class SensorsServer(Server):
             return [0, 0, 0]
 
         else:
-            msg = ""
-            while not "\r\n" in msg:
-                msg += self.serial.read().decode()
+            trame = [""]
+            while trame[0] != "$GPGGA":
+                msg = ""
+                while not "\r\n" in msg:
+                    msg += self.serial.read().decode()
+
+                trame = msg.split(",")
+                
             self.logger.debug(msg)
 
     def __init__(self, config):
