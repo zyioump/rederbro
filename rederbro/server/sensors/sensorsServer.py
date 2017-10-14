@@ -14,8 +14,9 @@ class SensorsServer(Server):
     def getCoord(self):
         self.logger.info("Get coordonate")
         if self.fakeMode:
-            self.logger.info("Coordonate : 0, 0, 0 (fake mode)")
-            return [0, 0, 0]
+            self.lastCord = [0, 0 , 0]
+            self.logger.info("Coordonate : {} (fake mode)".format(self.lastCord))
+            return self.lastCord
 
         else:
             trame = [""]
@@ -25,11 +26,23 @@ class SensorsServer(Server):
                     msg += self.serial.read().decode()
 
                 trame = msg.split(",")
-                
-            self.logger.debug(msg)
+
+            #$GGA,<time>,<lat>,<N/S>,<long>,<E/W>,<GPS-QUAL>,<satelite>,<hdop>,<alt>,<mode>,<otherthing>
+            self.lastSat = trame[7]
+            self.lastCord = [(trame[2]+trame[3]), (trame[4]+trame[5]), trame[9]]
+            self.lastTime = trame[1]
+            self.lastHdop = trame[8]
+
+            self.logger.info("Coordonate : {}".format(self.lastCord))
+            return self.lastCord
 
     def __init__(self, config):
         Server.__init__(self, config, "sensors")
+
+        self.lastSat = 0
+        self.lastCord = [0, 0, 0]
+        self.lastTime = 0
+        self.lastHdop = 0
 
         self.command = {\
             "debug" : (self.setDebug, True),\
