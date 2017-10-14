@@ -26,6 +26,7 @@ class Config():
                 ("fake", (True, "STATUS")),\
                 ("", (True, "STATUS"))),\
             "sensors" : (\
+                ("getCoord", (False, None)),\
                 ("debug", (True, "STATUS")),\
                 ("fake", (True, "STATUS")),\
                 ("automode", (True, "STATUS")),\
@@ -59,7 +60,7 @@ class Config():
                     #args[0] can be empty when there are no sub commmand
                     if subcommand[0] == "" or args[subcommand[0]]:
                         #some sub command take no argument like takepic
-                        
+
                         if not subcommand[1][0]:
                             #return value --> (a (b, c))
                             # a --> command name
