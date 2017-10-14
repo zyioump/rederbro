@@ -19,7 +19,7 @@ class SensorsServer(Server):
 
         else:
             msg = ""
-            while "\r\n" in msg:
+            while not "\r\n" in msg:
                 msg += self.serial.read()
                 print(msg)
 
