@@ -31,14 +31,11 @@ class Arduino():
 
         return (error, badAnswer)
 
-    def waitAnswer(self, correctAnswer):
+    def waitAnswer(self, correctAnswer, checkNB=int(self.time_out / 0.5)):
         """
         Wait the answer of the arduino with an time out
         Check if it is correct or not and return it
         """
-
-        checkNB = int(self.time_out / 0.5)
-        #we will check checkNB time the answer before time out
 
 
         for i in range(checkNB):
@@ -65,6 +62,6 @@ class Arduino():
 
     def clear(self):
         self.logger.info("Start clear serial")
-        error, answer = self.waitAnswer("")
+        error, answer = self.waitAnswer("", checkNB=4)
         self.logger.debug("{} was in serial".format(answer))
         self.logger.info("Serial cleared")
