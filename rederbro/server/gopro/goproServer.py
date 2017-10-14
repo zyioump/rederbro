@@ -3,7 +3,7 @@ from rederbro.utils.arduino import Arduino
 import time
 
 try:
-    from RPi.GPIO import GPIO
+    import RPi.GPIO as GPIO
 except:
     pass
 
