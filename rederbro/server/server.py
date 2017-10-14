@@ -79,6 +79,7 @@ class Server():
                     #treat command
                     self.command[line["command"]][0]()
             except Exception as e:
+                self.logger.debug(e)
                 self.logger.error("Unexpecting command")
 
         #if command receive by main server is not empty clear the pipe
