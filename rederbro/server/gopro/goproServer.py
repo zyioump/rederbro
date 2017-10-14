@@ -209,8 +209,8 @@ class GoproServer(Server):
         "goprooff" : (self.turnGopro, False),\
         "relayon" : (self.turnRelay, True),\
         "relayoff" : (self.turnRelay, False),\
-        "takepicon" : (self.takePic, None),\
-        "clearon" : (self.clear, None)\
+        "goprotakepic" : (self.takePic, None),\
+        "goproclear" : (self.clear, None)\
         }
 
     def start(self):
