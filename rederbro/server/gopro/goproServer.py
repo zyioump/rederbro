@@ -1,12 +1,15 @@
 from rederbro.server.server import Server
-from rederbro.utils.arduino import Arduino
+from rederbro.utils.serialManager import SerialManager
 
 try:
     import RPi.GPIO as GPIO
 except:
     pass
 
+
 class GoproServer(Server):
+    """
+    """
     def clear(self):
         if self.fakeMode:
             self.logger.info("Arduino serial cleared")
@@ -20,9 +23,9 @@ class GoproServer(Server):
         self.logger.info("Turn gopro {}".format(state))
 
         if self.relayOn:
-            #relay must be on before switch on gopro
+            # relay must be on before switch on gopro
             if self.fakeMode:
-                #when fake mode is on
+                # when fake mode is on
                 self.goproOn = state
                 self.logger.info("Turned gopro {} (fake mode)".format(state))
 
@@ -30,7 +33,7 @@ class GoproServer(Server):
                 #when fake mode is off
                 if state == "on":
                     #turn on
-                    error, answer = self.arduino.sendMsg("I", "ON\r\n")
+                    error, answer = self.arduino.sendMsg("I", "ON")
 
                     if error:
                         self.logger.error("Failed to turn gopro on")
@@ -61,7 +64,7 @@ class GoproServer(Server):
                     if not self.goproOn:
                         self.turnGopro(True, full=False)
 
-                    error, answer = self.arduino.sendMsg("O", "OFF\r\n")
+                    error, answer = self.arduino.sendMsg("O", "OFF")
 
                     if error:
                         self.logger.error("Failed to turn gopro off")
@@ -112,7 +115,7 @@ class GoproServer(Server):
             return False
         else:
             if force or self.goproOn:
-                error, answer = self.arduino.sendMsg("M", "PHOTO_MODE\r\n")
+                error, answer = self.arduino.sendMsg("M", "PHOTO_MODE")
 
                 if error:
                     self.logger.error("Failed to change gopro mode")
@@ -136,10 +139,10 @@ class GoproServer(Server):
         if force or self.goproOn:
             errorNB = 0
 
-            error, answer = self.arduino.sendMsg("T", "ID2\r\n")
+            error, answer = self.arduino.sendMsg("T", "ID2")
             errorNB += 1 if error else 0
 
-            error, answer =  self.arduino.waitAnswer("ID1s\r\n")
+            error, answer =  self.arduino.waitAnswer("ID1s")
             errorNB += 1 if error else 0
 
             goproFail = []
@@ -149,10 +152,10 @@ class GoproServer(Server):
                     if answer[i] == "1":
                         goproFail.append(i)
 
-                error, answer =  self.arduino.waitAnswer("ID1s\r\n")
+                error, answer =  self.arduino.waitAnswer("ID1s")
                 self.logger.error("Gopro {} failed to take picture".format(goproFail))
 
-            error, answer =  self.arduino.waitAnswer("TAKEN\r\n")
+            error, answer =  self.arduino.waitAnswer("TAKEN")
             errorNB += 1 if error else 0
 
             if errorNB == 0:
@@ -172,11 +175,11 @@ class GoproServer(Server):
 
         try:
             #init arduino
-            self.arduino = Arduino(self.config, self.logger)
+            self.arduino = SerialManager(self.config, self.logger, "arduino")
             self.clear()
         except:
             self.logger.error("Can't connect to arduino")
-            self.setFakeMode(True)
+            self.setFakeMode("on")
 
         try:
             #init GPIO
@@ -186,7 +189,7 @@ class GoproServer(Server):
         except:
             self.logger.error("Not on a rpi")
             if not self.fakeMode:
-                self.setFakeMode(True)
+                self.setFakeMode("on")
 
         #switch off relay to be sure that gopro are off
         self.turnRelay(False)
@@ -200,10 +203,10 @@ class GoproServer(Server):
         # b --> method who can treat the command
         # c --> if there are argument for the method
         self.command = {\
-        "debug" : (self.setDebug, True),\
-        "fake" : (self.setFakeMode, True),\
-        "gopro" : (self.turnGopro, True),\
-        "relay" : (self.turnRelay, True),\
-        "takepic" : (self.takePic, False),\
-        "clear" : (self.clear, False)\
+            "debug" : (self.setDebug, True),\
+            "fake" : (self.setFakeMode, True),\
+            "gopro" : (self.turnGopro, True),\
+            "relay" : (self.turnRelay, True),\
+            "takepic" : (self.takePic, False),\
+            "clear" : (self.clear, False)\
         }

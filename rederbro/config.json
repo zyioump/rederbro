@@ -12,7 +12,8 @@
     },
     "gps" : {
       "serial":"/dev/ttyAMA0",
-      "time_out":1
+      "baudrate":115200,
+      "time_out":10
     },
     "relay_pin":26
 }
