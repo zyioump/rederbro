@@ -17,6 +17,7 @@ class SensorsServer(Server):
         Auto mode will take a picture every self.distace meter.
         """
         self.logger.info("Auto mode turned {}".format(state))
+        self.auto_mode = True if state == "on" else False
 
     def setDistance(self, distance):
         """
@@ -27,11 +28,16 @@ class SensorsServer(Server):
         self.distance = distance
         self.logger.info("Distance between photo set to {}".format(self.distance))
 
+    def getDistance(self, cordA, cordB):
+        distanceBetweenPoint = math.cos(math.sin(cordA[0])*math.sin(cordB[0])+math.cos(cordA[0])*math.cos(cordB[0])*math.cos(cordB[1]-cordA[1]))*self.earth_radius
+        self.logger.info("Distance between now and last cord : {}".format(distanceBetweenPoint))
+        return distanceBetweenPoint
+
     def toDegCord(self):
         """
         Return latitude and longitude in degree.
 
-        google earth and some other thing prefer degree coordinate.
+        google earth and some other thing prefer degree cordinate.
         """
         lat = self.lastCord[0]
         lon = self.lastCord[1]
@@ -63,11 +69,11 @@ class SensorsServer(Server):
 
         return 0, 0  # mean it didin't work
 
-    def getCoord(self):
-        self.logger.info("Get coordonate")
+    def getCord(self):
+        self.logger.info("Get cordonate")
         if self.fakeMode:
             self.lastCord = [0, 0, 0]
-            self.logger.info("Coordonate : {} (fake mode)".format(self.lastCord))
+            self.logger.info("Cordonate : {} (fake mode)".format(self.lastCord))
 
         else:
             checkNB = int(self.time_out/0.5)
@@ -92,28 +98,49 @@ class SensorsServer(Server):
 
             else:
                 self.lastCord = [0, 0, 0]
-                self.logger.error("Failed to get new coordonate")
+                self.logger.error("Failed to get new cordonate")
 
         return self.lastCord
 
+    def checkAutoMode(self):
+        if self.auto_mode:
+            self.getCord()
+            lastDistance = self.getDistance(self.lastPhotoCord, self.lastCord)
+            if self.lastDistance >= self.distance:
+                self.lastPhotoCord = self.lastCord
+                self.logger.info("Take picture (auto mode)")
+
+    def start(self):
+        """
+        Method called by server command
+        """
+        self.logger.warning("Server started")
+        while self.running:
+            self.checkCommand()
+            self.checkAutoMode()
+            time.sleep(self.delay)
 
     def __init__(self, config):
         Server.__init__(self, config, "sensors")
 
         self.lastSat = 0
         self.lastCord = [0, 0, 0]
+        self.lastPhotoCord = [0, 0, 0]
         self.lastTime = 0
         self.lastHdop = 0
+
+        self.earth_radius = 6372.795477598 * 1000
 
         self.command = {\
             "debug": (self.setDebug, True),\
             "fake": (self.setFakeMode, True),\
             "automode": (self.turnAutomode, True),\
             "distance": (self.setDistance, True),\
-            "getCoord": (self.getCoord, False)\
+            "cord": (self.getCord, False)\
         }
 
         self.distance = 5
+        self.auto_mode = False
 
         self.time_out = config["gps"]["time_out"]
 

@@ -21,7 +21,7 @@ Usage:
   opv sensors fake STATUS
   opv sensors automode STATUS
   opv sensors distance METER
-  opv sensors getCoord
+  opv sensors cord
 
 Options:
   -h --help     Show this screen.
