@@ -1,7 +1,7 @@
 from rederbro.server.server import Server
 from rederbro.utils.serialManager import SerialManager
 import serial
-
+import math
 
 class SensorsServer(Server):
     """
@@ -29,7 +29,10 @@ class SensorsServer(Server):
         self.logger.info("Distance between photo set to {}".format(self.distance))
 
     def getDistance(self, cordA, cordB):
+        cordA = [math.radians(cordA[0]), math.radians(cordA[1])]
+        cordB = [math.radians(cordB[0]), math.radians(cordB[1])]
         distanceBetweenPoint = math.cos(math.sin(cordA[0])*math.sin(cordB[0])+math.cos(cordA[0])*math.cos(cordB[0])*math.cos(cordB[1]-cordA[1]))*self.earth_radius
+        distanceBetweenPoint = math.degrees(distanceBetweenPoint)
         self.logger.info("Distance between now and last cord : {}".format(distanceBetweenPoint))
         return distanceBetweenPoint
 
