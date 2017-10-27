@@ -12,7 +12,12 @@ class Server():
         self.serverType = serverType
 
         #init pipe using dataSend class
-        self.pipe = DataSend(os.path.dirname(os.path.abspath(__file__))+"/"+self.serverType+"/"+self.serverType+".pipe", "server")
+        self.pipes = {}
+        self.pipes["gopro"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/gopro/gopro.pipe", "client")
+        self.pipes["sensors"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/sensors/sensors.pipe", "client")
+        self.pipes["campaign"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/campaign/campaign.pipe", "client")
+
+        self.pipes[serverType] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/"+serverType+"/"+serverType+".pipe", "server")
 
         #init logger
         self.logFile = os.path.dirname(os.path.abspath(__file__))+"/../log/"+self.serverType+"_server.log"
@@ -66,7 +71,7 @@ class Server():
 
     def checkCommand(self):
         #check data send by main server
-        text = self.pipe.readText()
+        text = self.pipes[self.serverType].readText()
 
         for line in text:
             line = json.loads(line)
@@ -85,4 +90,4 @@ class Server():
 
         #if command receive by main server is not empty clear the pipe
         if len(text) is not 0:
-            self.pipe.clean()
+            self.pipes[self.serverType].clean()
