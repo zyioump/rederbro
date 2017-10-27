@@ -110,7 +110,7 @@ class SensorsServer(Server):
         if self.auto_mode:
             self.getCord()
             lastDistance = self.getDistance(self.lastPhotoCord, self.lastCord)
-            if self.lastDistance >= self.distance:
+            if lastDistance >= self.distance:
                 self.lastPhotoCord = self.lastCord
                 self.logger.info("Take picture (auto mode)")
 
