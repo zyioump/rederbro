@@ -61,7 +61,7 @@ class SerialManager():
         if msg == correctAnswer+"\r\n":
             error = False
 
-        return (error, answer)
+        return (error, msg)
 
     def clear(self):
         self.logger.info("Start clear serial")

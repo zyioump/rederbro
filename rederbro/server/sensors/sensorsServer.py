@@ -70,7 +70,7 @@ class SensorsServer(Server):
             self.logger.info("Coordonate : {} (fake mode)".format(self.lastCord))
 
         else:
-            checkNB = self.time_out/0.5
+            checkNB = int(self.time_out/0.5)
 
             for i in range(checkNB):
                 error, answer = self.gps.waitAnswer("")
