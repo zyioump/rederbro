@@ -94,7 +94,7 @@ class SensorsServer(Server):
                 self.lastCord = [0, 0, 0]
                 self.logger.error("Failed to get new coordonate")
 
-        return lastCord
+        return self.lastCord
 
 
     def __init__(self, config):
