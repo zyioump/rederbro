@@ -2,6 +2,7 @@ from rederbro.server.server import Server
 from rederbro.utils.serialManager import SerialManager
 import serial
 import math
+import time
 
 class SensorsServer(Server):
     """
