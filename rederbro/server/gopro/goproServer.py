@@ -150,7 +150,7 @@ class GoproServer(Server):
                 error, answer =  self.arduino.waitAnswer("")
                 for i in range(len(answer)):
                     if answer[i] == "1":
-                        goproFail.append(i)
+                        goproFail.append(5-i)
 
                 error, answer =  self.arduino.waitAnswer("ID1s")
                 self.logger.error("Gopro {} failed to take picture".format(goproFail))
