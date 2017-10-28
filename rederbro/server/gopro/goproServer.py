@@ -171,12 +171,12 @@ class GoproServer(Server):
             error, answer =  self.arduino.waitAnswer("TAKEN")
             errorNB += 1 if error else 0
 
-            picInfo = {"command" : "add_picture", "args": {}}
-            picInfo["args"]["time"] = time.asctime()
-            picInfo["args"]["goproFailed"] = "000000"
-
             askCordJson = {"command" : "cord", "args" : True}
             self.pipes["sensors"].writeLine(json.dumps(askCordJson))
+
+            picInfo = {"command" : "add_picture", "args": {}}
+            picInfo["args"]["time"] = time.asctime()
+            picInfo["args"]["goproFailed"] = goproFailed[1]
 
             self.pipes["campaign"].writeLine(json.dumps(picInfo))
 
