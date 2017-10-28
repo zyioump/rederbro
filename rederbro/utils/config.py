@@ -7,7 +7,7 @@ class Config():
         self.config = self.loadConf()
 
         #list of all command
-        self.mainCommand = ["server", "sensors", "gopro"]
+        self.mainCommand = ["server", "sensors", "gopro", "campaign"]
 
         #commandArgs --> a dict who contain all sub command of a command and if it take an argument
         # a : ((b, (c, d)), ...)
@@ -31,9 +31,13 @@ class Config():
                 ("fake", (True, "STATUS")),\
                 ("automode", (True, "STATUS")),\
                 ("distance", (True, "METER"))),\
+            "campaign" : (\
+                ("new", (True, "NAME")),\
+                ("attach", (True, "NAME"))),\
             "server" : (\
                 ("main", (True, "on")),\
                 ("sensors", (True, "on")),\
+                ("campaign", (True, "on")),\
                 ("gopro", (True, "on")))\
         }
 

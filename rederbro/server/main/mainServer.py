@@ -49,7 +49,7 @@ class MainServer():
         self.delay = self.config["server"]["delay"]
 
         #init all pipe to sub server using datasend
-        self.pipes = {"gopro" : DataSend(os.path.dirname(os.path.abspath(__file__))+"/../gopro/gopro.pipe", "client"), "sensors" : DataSend(os.path.dirname(os.path.abspath(__file__))+"/../sensors/sensors.pipe", "client")}
+        self.pipes = {"gopro" : DataSend(os.path.dirname(os.path.abspath(__file__))+"/../gopro/gopro.pipe", "client"), "sensors" : DataSend(os.path.dirname(os.path.abspath(__file__))+"/../sensors/sensors.pipe", "client"), "campaign" : DataSend(os.path.dirname(os.path.abspath(__file__))+"/../campaign/campaign.pipe", "client")}
 
     def start(self):
         self.logger.warning('Server started')

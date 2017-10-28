@@ -16,6 +16,7 @@ class Server():
         self.pipes["gopro"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/gopro/gopro.pipe", "client")
         self.pipes["sensors"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/sensors/sensors.pipe", "client")
         self.pipes["campaign"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/campaign/campaign.pipe", "client")
+        self.pipes["cord"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/cord.pipe", "server")
 
         self.pipes[serverType] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/"+serverType+"/"+serverType+".pipe", "server")
 
@@ -75,7 +76,6 @@ class Server():
 
         for line in text:
             line = json.loads(line)
-            print(line)
             #if method who treat the command take an argument
             try:
                 if self.command[line["command"]][1]:
@@ -85,7 +85,7 @@ class Server():
                     #treat command
                     self.command[line["command"]][0]()
             except Exception as e:
-                self.logger.debug(e)
+                self.logger.exception(e)
                 self.logger.error("Unexpecting command")
 
         #if command receive by main server is not empty clear the pipe

@@ -1,5 +1,7 @@
 from rederbro.server.server import Server
 from rederbro.utils.serialManager import SerialManager
+import time
+import json
 
 try:
     import RPi.GPIO as GPIO
@@ -132,11 +134,21 @@ class GoproServer(Server):
         Ask arduino to take picture
         """
         self.logger.info("Take picture")
-        if self.fakeMode:
-            self.logger.info("Gopro took picture")
-            return False
 
         if force or self.goproOn:
+            if self.fakeMode:
+                self.logger.info("Gopro took picture (fake mode)")
+
+                picInfo = {"command" : "add_picture", "args": {}}
+                picInfo["args"]["time"] = time.asctime()
+                picInfo["args"]["goproFailed"] = "000000"
+
+                askCordJson = {"command" : "cord", "args" : True}
+                self.pipes["sensors"].writeLine(json.dumps(askCordJson))
+
+                self.pipes["campaign"].writeLine(json.dumps(picInfo))
+                return False
+
             errorNB = 0
 
             error, answer = self.arduino.sendMsg("T", "ID2")
@@ -145,15 +157,16 @@ class GoproServer(Server):
             error, answer =  self.arduino.waitAnswer("ID1s")
             errorNB += 1 if error else 0
 
-            goproFail = []
+            goproFail = [[], "000000"]
             if error:
                 error, answer =  self.arduino.waitAnswer("")
+                goproFail[1] = answer
                 for i in range(len(answer)):
                     if answer[i] == "1":
-                        goproFail.append(5-i)
+                        goproFail[0].append(5-i)
 
                 error, answer =  self.arduino.waitAnswer("ID1s")
-                self.logger.error("Gopro {} failed to take picture".format(goproFail))
+                self.logger.error("Gopro {} failed to take picture".format(goproFail[0]))
 
             error, answer =  self.arduino.waitAnswer("TAKEN")
             errorNB += 1 if error else 0
@@ -164,6 +177,15 @@ class GoproServer(Server):
             else:
                 self.logger.info("Gopro failed to took picture")
                 return True
+
+            picInfo = {"command" : "add_picture", "args": {}}
+            picInfo["args"]["time"] = time.asctime()
+            picInfo["args"]["goproFailed"] = "000000"
+
+            askCordJson = {"command" : "cord", "args" : True}
+            self.pipes["sensors"].writeLine(json.dumps(askCordJson))
+
+            self.pipes["campaign"].writeLine(json.dumps(picInfo))
         else:
             self.logger.error("Gopro can't take picture cause gopro is off")
             return True

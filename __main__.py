@@ -4,6 +4,7 @@ from rederbro.command.command import Command
 from rederbro.command.serverCommand import ServerCommand
 from rederbro.command.goproCommand import GoproCommand
 from rederbro.command.sensorsCommand import SensorsCommand
+from rederbro.command.campaignCommand import CampaignCommand
 
 __doc__ ="""Open path view rederbro
 
@@ -11,6 +12,7 @@ Usage:
   opv server main on
   opv server gopro on
   opv server sensors on
+  opv server campaign on
   opv gopro relay STATUS
   opv gopro takepic
   opv gopro clear
@@ -22,13 +24,15 @@ Usage:
   opv sensors automode STATUS
   opv sensors distance METER
   opv sensors cord
+  opv campaign new NAME
+  opv campaign attach NAME
 
 Options:
   -h --help     Show this screen.
 
 """
 
-command_list = {"server" : ServerCommand, "gopro": GoproCommand, "sensors" :  SensorsCommand}
+command_list = {"server" : ServerCommand, "gopro": GoproCommand, "sensors" :  SensorsCommand, "campaign" : CampaignCommand}
 
 config = Config().getConf()
 

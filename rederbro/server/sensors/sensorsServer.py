@@ -2,6 +2,9 @@ from rederbro.server.server import Server
 from rederbro.utils.serialManager import SerialManager
 import serial
 import math
+import json
+from rederbro.utils.dataSend import DataSend
+import os
 import time
 
 class SensorsServer(Server):
@@ -75,11 +78,18 @@ class SensorsServer(Server):
 
         return 0, 0  # mean it didin't work
 
+    def getHeading(self):
+        self.heading = 0
+        return 0
+
     def getCord(self):
         self.logger.info("Get cordonate")
         if self.fakeMode:
             self.lastCord = [0, 0, 0]
             self.logger.info("Cordonate : {} (fake mode)".format(self.lastCord))
+
+            sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading()}
+            self.pipes["cord"].writeLine(json.dumps(sensorsJson))
 
         else:
             checkNB = int(self.time_out/0.5)
@@ -106,6 +116,8 @@ class SensorsServer(Server):
                 self.lastCord = [0, 0, 0]
                 self.logger.error("Failed to get new cordonate")
 
+        sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading()}
+        self.pipes["cord"].writeLine(json.dumps(sensorsJson))
         return self.lastCord
 
     def checkAutoMode(self):
@@ -115,6 +127,10 @@ class SensorsServer(Server):
             if lastDistance >= self.distance:
                 self.lastPhotoCord = self.lastCord
                 self.logger.info("Take picture (auto mode)")
+
+                commandJson = {"command" : "takepic", "args" : True}
+
+                self.pipes["gopro"].writeLine(json.dumps(commandJson))
 
     def start(self):
         """
@@ -134,6 +150,7 @@ class SensorsServer(Server):
         self.lastPhotoCord = [0, 0, 0]
         self.lastTime = 0
         self.lastHdop = 0
+        self.heading = 0
 
         self.earth_radius = 6372.795477598 * 1000
 
@@ -144,6 +161,8 @@ class SensorsServer(Server):
             "distance": (self.setDistance, True),\
             "cord": (self.getCord, False)\
         }
+
+        self.pipes["cord"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/../cord.pipe", "client")
 
         self.distance = 5
         self.auto_mode = False

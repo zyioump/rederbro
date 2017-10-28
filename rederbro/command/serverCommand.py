@@ -2,6 +2,7 @@ from rederbro.command.command import Command
 from rederbro.server.main.mainServer import MainServer
 from rederbro.server.gopro.goproServer import GoproServer
 from rederbro.server.sensors.sensorsServer import SensorsServer
+from rederbro.server.campaign.campaignServer import CampaignServer
 
 class ServerCommand(Command):
     def run(self, args):
@@ -9,7 +10,7 @@ class ServerCommand(Command):
         # a --> sub command name
         # b --> sub command argument (True or False)
 
-        self.server = {"main" : MainServer, "sensors" : SensorsServer, "gopro" : GoproServer}
+        self.server = {"main" : MainServer, "sensors" : SensorsServer, "gopro" : GoproServer, "campaign" : CampaignServer}
 
 
         # if sub command arg is True we launch the server
