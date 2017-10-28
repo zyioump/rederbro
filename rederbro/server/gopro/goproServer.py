@@ -171,13 +171,6 @@ class GoproServer(Server):
             error, answer =  self.arduino.waitAnswer("TAKEN")
             errorNB += 1 if error else 0
 
-            if errorNB == 0:
-                self.logger.info("All gopro took picture")
-                return False
-            else:
-                self.logger.info("Gopro failed to took picture")
-                return True
-
             picInfo = {"command" : "add_picture", "args": {}}
             picInfo["args"]["time"] = time.asctime()
             picInfo["args"]["goproFailed"] = "000000"
@@ -186,6 +179,13 @@ class GoproServer(Server):
             self.pipes["sensors"].writeLine(json.dumps(askCordJson))
 
             self.pipes["campaign"].writeLine(json.dumps(picInfo))
+
+            if errorNB == 0:
+                self.logger.info("All gopro took picture")
+                return False
+            else:
+                self.logger.info("Gopro failed to took picture")
+                return True
         else:
             self.logger.error("Gopro can't take picture cause gopro is off")
             return True

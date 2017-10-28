@@ -29,7 +29,7 @@ class SensorsServer(Server):
 
         This method don't turn on auto mode.
         """
-        self.distance = distance
+        self.distance = float(distance)
         self.logger.info("Distance between photo set to {}".format(self.distance))
 
     def getDistance(self, cordA, cordB):
@@ -37,8 +37,6 @@ class SensorsServer(Server):
         cordB = [math.radians(cordB[0]), math.radians(cordB[1])]
 
         distanceBetweenPoint = self.earth_radius * (math.pi/2 - math.asin( math.sin(cordB[0]) * math.sin(cordA[0]) + math.cos(cordB[1] - cordA[1]) * math.cos(cordB[0]) * math.cos(cordA[0])))
-
-        distanceBetweenPoint = math.degrees(distanceBetweenPoint)
         self.logger.info("Distance between now and last cord : {}".format(distanceBetweenPoint))
         return distanceBetweenPoint
 
