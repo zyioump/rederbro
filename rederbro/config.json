@@ -1,10 +1,9 @@
 {
     "server" : {
         "server_url" : "127.0.0.1",
-        "server_port" : 9876,
-        "bind_address" : "",
-        "max_connection" : 100,
-        "delay": 1
+        "client_server_port" : 8547,
+        "worker_server_port" : 8548,
+        "bind_address" : "*"
     },
     "arduino" : {
       "serial":"/dev/ttyACM0",
@@ -13,7 +12,12 @@
     "gps" : {
       "serial":"/dev/ttyAMA0",
       "baudrate":115200,
-      "time_out":10
+      "time_out":10,
+      "server_url" : "127.0.0.1",
+      "bind_url" : "*",
+      "pub_server_port" : 8549,
+      "rep_server_port" : 8550,
+      "delay" : 0.25
     },
     "relay_pin":26
 }

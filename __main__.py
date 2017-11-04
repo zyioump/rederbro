@@ -2,9 +2,6 @@ from docopt import docopt
 from rederbro.utils.config import Config
 from rederbro.command.command import Command
 from rederbro.command.serverCommand import ServerCommand
-from rederbro.command.goproCommand import GoproCommand
-from rederbro.command.sensorsCommand import SensorsCommand
-from rederbro.command.campaignCommand import CampaignCommand
 
 __doc__ ="""Open path view rederbro
 
@@ -32,8 +29,6 @@ Options:
 
 """
 
-command_list = {"server" : ServerCommand, "gopro": GoproCommand, "sensors" :  SensorsCommand, "campaign" : CampaignCommand}
-
 config = Config().getConf()
 
 def main():
@@ -54,7 +49,10 @@ def launchCommand(args):
     # args[1] --> (a, b)
     # a --> sub command name
     # b --> sub command argument
-    command_list[args[0]](config).run(args[1])
+    if args[0] != "server":
+        Command(config, args[0]).run(args[1])
+    else:
+        ServerCommand(config, args[0]).run(args[1])
 
 
 if __name__ == "__main__":
