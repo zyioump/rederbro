@@ -97,9 +97,6 @@ class SensorsServer(Worker):
             if log:
                 self.logger.info("Cordonate : {} (fake mode)".format(self.lastCord))
 
-            sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading()}
-            self.gps_infoPub.send_json(sensorsJson)
-
         else:
             checkNB = int(self.time_out/0.5)
 
@@ -126,7 +123,7 @@ class SensorsServer(Worker):
                 self.lastCord = [0, 0, 0]
                 self.logger.error("Failed to get new cordonate")
 
-        sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading()}
+        sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading() ,"time" : self.lastTime}
         self.gps_infoPub.send_json(sensorsJson)
 
         return sensorsJson

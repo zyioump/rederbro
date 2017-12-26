@@ -6,11 +6,10 @@ import zmq
 
 class CampaignServer(Worker):
     def add_picture(self, picInfo):
+        self.pictureNB += 1
         self.gps_infoReq.send_json({})
         gps = self.gps_infoReq.recv_json()
-
-        self.logger.info("{} and {}".format(picInfo, gps))
-        text = "{}; {}; {}; {}; {}; {}\n".format(picInfo["time"], gps["lat"], gps["lon"], gps["alt"], gps["head"], picInfo["goproFail"])
+        text = "{}; {}; {}; {}; {}; {}; {}; {}\n".format(self.pictureNB, picInfo["time"], gps["lat"], gps["lon"], gps["alt"], gps["head"], gps["time"], picInfo["goproFail"])
 
         self.logger.info("{} will be put in csv file".format(text))
 
@@ -21,7 +20,7 @@ class CampaignServer(Worker):
         self.attachCampaign(args)
 
         with open(self.currentCampaignPath, "w") as csv:
-            csv.write("time; lat; lon; alt; rad; goProFailed\n")
+            csv.write("number; time; lat; lon; alt; rad; gps_time; goProFailed\n")
 
         self.logger.info(args+" campaign created")
 
@@ -36,6 +35,8 @@ class CampaignServer(Worker):
         self.baseCampaignPath = os.path.dirname(os.path.abspath(__file__))+"/../campaign/"
 
         self.newCampaign("pictureInfo")
+
+        self.pictureNB = 0
 
         #dict who link a command to a method
         # a : (b, c)
