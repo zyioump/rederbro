@@ -1,13 +1,16 @@
-from rederbro.server.server import Server
+from rederbro.server.worker import Worker
 from rederbro.utils.serialManager import SerialManager
 import serial
 import math
 import json
 from rederbro.utils.dataSend import DataSend
 import os
+from rederbro.command.command import Command
 import time
+import zmq
+import threading
 
-class SensorsServer(Server):
+class SensorsServer(Worker):
     """
     A server who manage sensors :
                             --> gps
@@ -37,7 +40,7 @@ class SensorsServer(Server):
         cordB = [math.radians(cordB[0]), math.radians(cordB[1])]
 
         distanceBetweenPoint = self.earth_radius * (math.pi/2 - math.asin( math.sin(cordB[0]) * math.sin(cordA[0]) + math.cos(cordB[1] - cordA[1]) * math.cos(cordB[0]) * math.cos(cordA[0])))
-        self.logger.info("Distance between now and last cord : {}".format(distanceBetweenPoint))
+        self.logger.debug("Distance between now and last cord : {}".format(distanceBetweenPoint))
         return distanceBetweenPoint
 
     def toDegCord(self):
@@ -80,14 +83,19 @@ class SensorsServer(Server):
         self.heading = 0
         return 0
 
-    def getCord(self):
-        self.logger.info("Get cordonate")
+    def alwaysCord(self):
+        while True:
+            self.getCord(log=False)
+            self.checkAutoMode()
+            time.sleep(self.config["gps"]["delay"])
+
+    def getCord(self, log=True):
+        if log:
+            self.logger.info("Get cordonate")
         if self.fakeMode:
             self.lastCord = [0, 0, 0]
-            self.logger.info("Cordonate : {} (fake mode)".format(self.lastCord))
-
-            sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading()}
-            self.pipes["cord"].writeLine(json.dumps(sensorsJson))
+            if log:
+                self.logger.info("Cordonate : {} (fake mode)".format(self.lastCord))
 
         else:
             checkNB = int(self.time_out/0.5)
@@ -108,40 +116,37 @@ class SensorsServer(Server):
 
                 self.toDegCord()
 
-                self.logger.info("Current cordonate : {}".format(self.lastCord))
+                if log:
+                    self.logger.info("Current cordonate : {}".format(self.lastCord))
 
             else:
                 self.lastCord = [0, 0, 0]
                 self.logger.error("Failed to get new cordonate")
 
-        sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading()}
-        self.pipes["cord"].writeLine(json.dumps(sensorsJson))
-        return self.lastCord
+        sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading() ,"time" : self.lastTime}
+        self.gps_infoPub.send_json(sensorsJson)
+
+        return sensorsJson
 
     def checkAutoMode(self):
         if self.auto_mode:
-            self.getCord()
             lastDistance = self.getDistance(self.lastPhotoCord, self.lastCord)
             if lastDistance >= self.distance:
                 self.lastPhotoCord = self.lastCord
                 self.logger.info("Take picture (auto mode)")
 
-                commandJson = {"command" : "takepic", "args" : True}
+                msg = ("takepic" , True)
+                cmd = Command(self.config, "gopro")
+                cmd.run(msg)
 
-                self.pipes["gopro"].writeLine(json.dumps(commandJson))
-
-    def start(self):
-        """
-        Method called by server command
-        """
-        self.logger.warning("Server started")
-        while self.running:
-            self.checkCommand()
-            self.checkAutoMode()
-            time.sleep(self.delay)
+    def pollCall(self, poll):
+        if self.gps_infoRep in poll:
+            self.gps_infoRep.recv_json()
+            rep = self.getCord()
+            self.gps_infoRep.send_json(rep)
 
     def __init__(self, config):
-        Server.__init__(self, config, "sensors")
+        Worker.__init__(self, config, "sensors")
 
         self.lastSat = 0
         self.lastCord = [0, 0, 0]
@@ -160,7 +165,15 @@ class SensorsServer(Server):
             "cord": (self.getCord, False)\
         }
 
-        self.pipes["cord"] = DataSend(os.path.dirname(os.path.abspath(__file__))+"/../cord.pipe", "client")
+        urlGPS = "tcp://{}:{}".format(self.config["gps"]["bind_url"], self.config["gps"]["pub_server_port"])
+        self.gps_infoPub = self.context.socket(zmq.PUB)
+        self.gps_infoPub.bind(urlGPS)
+
+        urlGPS2 = "tcp://{}:{}".format(self.config["gps"]["bind_url"], self.config["gps"]["rep_server_port"])
+        self.gps_infoRep = self.context.socket(zmq.REP)
+        self.gps_infoRep.bind(urlGPS2)
+
+        self.poller.register(self.gps_infoRep, zmq.POLLIN)
 
         self.distance = 5
         self.auto_mode = False
@@ -171,3 +184,7 @@ class SensorsServer(Server):
             self.gps = SerialManager(self.config, self.logger, "gps")
         except:
             self.setFakeMode("on")
+
+
+        cord = threading.Thread(target=self.alwaysCord)
+        cord.start()

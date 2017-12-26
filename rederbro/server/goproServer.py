@@ -1,5 +1,6 @@
-from rederbro.server.server import Server
+from rederbro.server.worker import Worker
 from rederbro.utils.serialManager import SerialManager
+from rederbro.command.command import Command
 import time
 import json
 
@@ -9,7 +10,7 @@ except:
     pass
 
 
-class GoproServer(Server):
+class GoproServer(Worker):
     """
     """
     def clear(self):
@@ -129,6 +130,15 @@ class GoproServer(Server):
                 self.logger.error("Failed to change gopro mode cause gopro is off")
                 return True
 
+    def askCampaign(self, goproFail):
+        args = {}
+        args["time"] = time.asctime()
+        args["goproFail"] = goproFail
+        msg = ("add_picture" , args)
+        cmd = Command(self.config, "campaign")
+        cmd.run(msg)
+
+
     def takePic(self, force=False):
         """
         Ask arduino to take picture
@@ -138,15 +148,7 @@ class GoproServer(Server):
         if force or self.goproOn:
             if self.fakeMode:
                 self.logger.info("Gopro took picture (fake mode)")
-
-                picInfo = {"command" : "add_picture", "args": {}}
-                picInfo["args"]["time"] = time.asctime()
-                picInfo["args"]["goproFailed"] = "000000"
-
-                askCordJson = {"command" : "cord", "args" : True}
-                self.pipes["sensors"].writeLine(json.dumps(askCordJson))
-
-                self.pipes["campaign"].writeLine(json.dumps(picInfo))
+                self.askCampaign("000000")
                 return False
 
             errorNB = 0
@@ -157,7 +159,7 @@ class GoproServer(Server):
             error, answer =  self.arduino.waitAnswer("ID1s")
             errorNB += 1 if error else 0
 
-            goproFail = [[], "000000"]
+            goproFail = [(), "000000"]
             if error:
                 error, answer =  self.arduino.waitAnswer("")
                 goproFail[1] = answer
@@ -171,14 +173,7 @@ class GoproServer(Server):
             error, answer =  self.arduino.waitAnswer("TAKEN")
             errorNB += 1 if error else 0
 
-            askCordJson = {"command" : "cord", "args" : True}
-            self.pipes["sensors"].writeLine(json.dumps(askCordJson))
-
-            picInfo = {"command" : "add_picture", "args": {}}
-            picInfo["args"]["time"] = time.asctime()
-            picInfo["args"]["goproFailed"] = goproFailed[1]
-
-            self.pipes["campaign"].writeLine(json.dumps(picInfo))
+            self.askCampaign(goproFail[1])
 
             if errorNB == 0:
                 self.logger.info("All gopro took picture")
@@ -192,7 +187,7 @@ class GoproServer(Server):
 
     def __init__(self, config):
         #Use the __init__ of the server class
-        Server.__init__(self, config, "gopro")
+        Worker.__init__(self, config, "gopro")
 
 
         try:

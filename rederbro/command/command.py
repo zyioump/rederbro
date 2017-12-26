@@ -1,28 +1,36 @@
-import socket
+import zmq
+import json
+import random
+import time
 
 class Command():
-    def __init__(self, config):
+    def __init__(self, config, topic):
         self.config = config
+        self.topic = topic
         self.server_url = config["server"]["server_url"]
-        self.server_port = config["server"]["server_port"]
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_port = config["server"]["client_server_port"]
+        self.url = "tcp://"+self.server_url+":"+str(self.server_port)
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.PUSH)
 
     def sendMsg(self, args):
         """
         Used to send a msg to main server using url and port found in config
         msg must be a string who contain a json to be undertand by the server
         """
-        try:
-            self.socket.connect((self.server_url, self.server_port))
-            #msg must be convert in byte before being send
-            self.socket.send(args.encode())
-            self.socket.close()
-        except ConnectionRefusedError:
-            print("Server isn't running")
+
+        self.socket.connect(self.url)
+        self.socket.send_json(args)
+
 
     def run(self, args):
         """
         Method called by main class
         Must be overwrited
         """
-        pass
+        msg = {}
+        msg["command"] = args[0]
+        msg["args"] = args[1]
+        msg["topic"] = self.topic
+
+        self.sendMsg(msg)
