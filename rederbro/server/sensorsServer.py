@@ -33,8 +33,8 @@ class SensorsServer(Worker):
         self.logger.info("Distance between photo set to {}".format(self.distance))
 
     def getDistance(self, cordA, cordB):
-        cordA = [math.radians(cordA[0]), math.radians(cordA[1])]
-        cordB = [math.radians(cordB[0]), math.radians(cordB[1])]
+        cordA = [float(math.radians(cordA[0])), float(math.radians(cordA[1]))]
+        cordB = [float(math.radians(cordB[0])), float(math.radians(cordB[1]))]
 
         calc = (math.pi/2 - math.asin(math.sin(cordB[0]) * math.sin(cordA[0]) + math.cos(cordB[1] - cordA[1]) * math.cos(cordB[0]) * math.cos(cordA[0])))
         distanceBetweenPoint = self.earth_radius * calc
