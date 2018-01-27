@@ -1,5 +1,5 @@
 import serial
-import time
+
 
 class SerialManager():
     """
@@ -24,13 +24,13 @@ class SerialManager():
         It will return if the answer send by serial is not correctAnswer and return the bad anwswer or None
         """
 
-        #send msg to serial
-        #msg must be convert in byte
+        # send msg to serial
+        # msg must be convert in byte
         self.serial.write(msg.encode())
         self.logger.debug("{} send to serial".format(msg.encode()))
 
-        #Wait for the answer of serial  if the answer of serial is not correctAnswer error will be True
-        #BadAnswer will be answer send by serial
+        # Wait for the answer of serial  if the answer of serial is not correctAnswer error will be True
+        # BadAnswer will be answer send by serial
         error, badAnswer = self.waitAnswer(correctAnswer)
 
         return (error, badAnswer)
@@ -44,7 +44,7 @@ class SerialManager():
             checkNB = int(self.time_out / 0.5)
         else:
             checkNB = int(timeout / 0.5)
-        #we will check checkNB time the answer before time out
+        # we will check checkNB time the answer before time out
 
         msg = ""
 

@@ -1,7 +1,5 @@
 import zmq
-import json
-import random
-import time
+
 
 class Command():
     def __init__(self, config, topic):
@@ -21,7 +19,6 @@ class Command():
 
         self.socket.connect(self.url)
         self.socket.send_json(args)
-
 
     def run(self, args):
         """

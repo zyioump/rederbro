@@ -1,14 +1,11 @@
 from rederbro.server.worker import Worker
 from rederbro.utils.serialManager import SerialManager
-import serial
 import math
-import json
-from rederbro.utils.dataSend import DataSend
-import os
 from rederbro.command.command import Command
 import time
 import zmq
 import threading
+
 
 class SensorsServer(Worker):
     """
@@ -39,7 +36,8 @@ class SensorsServer(Worker):
         cordA = [math.radians(cordA[0]), math.radians(cordA[1])]
         cordB = [math.radians(cordB[0]), math.radians(cordB[1])]
 
-        distanceBetweenPoint = self.earth_radius * (math.pi/2 - math.asin( math.sin(cordB[0]) * math.sin(cordA[0]) + math.cos(cordB[1] - cordA[1]) * math.cos(cordB[0]) * math.cos(cordA[0])))
+        calc = (math.pi/2 - math.asin(math.sin(cordB[0]) * math.sin(cordA[0]) + math.cos(cordB[1] - cordA[1]) * math.cos(cordB[0]) * math.cos(cordA[0])))
+        distanceBetweenPoint = self.earth_radius * calc
         self.logger.debug("Distance between now and last cord : {}".format(distanceBetweenPoint))
         return distanceBetweenPoint
 
@@ -108,7 +106,7 @@ class SensorsServer(Worker):
                     break
 
             if not error:
-                #$GPGGA,<time>,<lat>,<N/S>,<lon>,<E/W>,<positionnement type>,<satelite number>,<HDOP>,<alt>,<other thing>
+                # $GPGGA,<time>,<lat>,<N/S>,<lon>,<E/W>,<positionnement type>,<satelite number>,<HDOP>,<alt>,<other thing>
                 self.lastSat = answer[7]
                 self.lastCord = [answer[2]+answer[3], answer[4]+answer[5], answer[9]]
                 self.lastTime = answer[1]
@@ -123,7 +121,7 @@ class SensorsServer(Worker):
                 self.lastCord = [0, 0, 0]
                 self.logger.error("Failed to get new cordonate")
 
-        sensorsJson = {"lat" : self.lastCord[0], "lon" : self.lastCord[1], "alt": self.lastCord[2], "head" : self.getHeading() ,"time" : self.lastTime}
+        sensorsJson = {"lat": self.lastCord[0], "lon": self.lastCord[1], "alt": self.lastCord[2], "head": self.getHeading(), "time": self.lastTime}
         self.gps_infoPub.send_json(sensorsJson)
 
         return sensorsJson
@@ -135,7 +133,7 @@ class SensorsServer(Worker):
                 self.lastPhotoCord = self.lastCord
                 self.logger.info("Take picture (auto mode)")
 
-                msg = ("takepic" , True)
+                msg = ("takepic", True)
                 cmd = Command(self.config, "gopro")
                 cmd.run(msg)
 
@@ -157,12 +155,12 @@ class SensorsServer(Worker):
 
         self.earth_radius = 6372.795477598 * 1000
 
-        self.command = {\
-            "debug": (self.setDebug, True),\
-            "fake": (self.setFakeMode, True),\
-            "automode": (self.turnAutomode, True),\
-            "distance": (self.setDistance, True),\
-            "cord": (self.getCord, False)\
+        self.command = {
+            "debug": (self.setDebug, True),
+            "fake": (self.setFakeMode, True),
+            "automode": (self.turnAutomode, True),
+            "distance": (self.setDistance, True),
+            "cord": (self.getCord, False)
         }
 
         urlGPS = "tcp://{}:{}".format(self.config["gps"]["bind_url"], self.config["gps"]["pub_server_port"])
@@ -184,7 +182,6 @@ class SensorsServer(Worker):
             self.gps = SerialManager(self.config, self.logger, "gps")
         except:
             self.setFakeMode("on")
-
 
         cord = threading.Thread(target=self.alwaysCord)
         cord.start()

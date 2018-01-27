@@ -1,15 +1,23 @@
 from rederbro.server.worker import Worker
 import os
-import json
-import time
 import zmq
+
 
 class CampaignServer(Worker):
     def add_picture(self, picInfo):
         self.pictureNB += 1
         self.gps_infoReq.send_json({})
         gps = self.gps_infoReq.recv_json()
-        text = "{}; {}; {}; {}; {}; {}; {}; {}\n".format(self.pictureNB, picInfo["time"], gps["lat"], gps["lon"], gps["alt"], gps["head"], gps["time"], picInfo["goproFail"])
+        text = "{}; {}; {}; {}; {}; {}; {}; {}\n".format(
+            self.pictureNB,
+            picInfo["time"],
+            gps["lat"],
+            gps["lon"],
+            gps["alt"],
+            gps["head"],
+            gps["time"],
+            picInfo["goproFail"]
+        )
 
         self.logger.info("{} will be put in csv file".format(text))
 
@@ -29,7 +37,7 @@ class CampaignServer(Worker):
         self.logger.info("Campaign attached to "+args)
 
     def __init__(self, config):
-        #Use the __init__ of the server class
+        # Use the __init__ of the server class
         Worker.__init__(self, config, "campaign")
 
         self.baseCampaignPath = os.path.dirname(os.path.abspath(__file__))+"/../campaign/"
@@ -38,15 +46,15 @@ class CampaignServer(Worker):
 
         self.pictureNB = 0
 
-        #dict who link a command to a method
+        # dict who link a command to a method
         # a : (b, c)
         # a --> command name
         # b --> method who can treat the command
         # c --> if there are argument for the method
-        self.command = {\
-            "add_picture" : (self.add_picture, True),\
-            "new" : (self.newCampaign, True),\
-            "attach" : (self.attachCampaign, True)\
+        self.command = {
+            "add_picture": (self.add_picture, True),
+            "new": (self.newCampaign, True),
+            "attach": (self.attachCampaign, True)
         }
 
         urlGPS = "tcp://{}:{}".format(self.config["gps"]["server_url"], self.config["gps"]["rep_server_port"])

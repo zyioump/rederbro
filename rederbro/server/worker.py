@@ -1,19 +1,19 @@
 import os
 import logging
-import json
 import zmq
 from logging.handlers import RotatingFileHandler
+
 
 class Worker():
     def __init__(self, config, name):
         self.config = config
         self.name = name
 
-        #init logger
+        # init logger
         self.logFile = os.path.dirname(os.path.abspath(__file__))+"/../log/"+self.name+"_server.log"
 
         self.logger = logging.getLogger()
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.INFO)
 
         formatter = logging.Formatter(self.name+' --- %(asctime)s :: %(levelname)s :: %(message)s')
 
@@ -77,11 +77,12 @@ class Worker():
         pass
 
     def checkCommand(self):
-        #check data send by main server
+        # check data send by main server
         poll = dict(self.poller.poll())
 
         if self.socket in poll:
             cmd = self.socket.recv_json()
+            self.logger.debug(cmd)
 
             if cmd["topic"] == self.name:
                 try:

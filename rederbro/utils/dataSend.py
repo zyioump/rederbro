@@ -6,9 +6,9 @@ class DataSend:
 
     def __init__(self, fileLoc, typeWR):
         self.fileLoc = fileLoc
-        #typeWR is "client" or "server"
-        #"server" when we read text in pipe file
-        #"client" when we just append text in pipe file
+        # typeWR is "client" or "server"
+        # "server" when we read text in pipe file
+        # "client" when we just append text in pipe file
         self.typeWR = typeWR
         self.file = None
         self.clean()
@@ -30,24 +30,24 @@ class DataSend:
         Read text in pipe file and convert him in list of line non empty, your type must be server
         """
 
-        #open pipe file when he is not open
+        # open pipe file when he is not open
         if self.file is None or self.file.closed is True:
             self.open()
 
-        #read pipe file
+        # read pipe file
         text = self.file.read()
-        #make a list of line in the pipe file
+        # make a list of line in the pipe file
         text = text.split("\n")
 
-        #this list will be the same of text list by without empty line
+        # this list will be the same of text list by without empty line
         greatText = []
 
-        #put non empty line in greatText list
+        # put non empty line in greatText list
         for line in text:
             if line is not "":
                 greatText.append(line)
 
-        #close pipe file
+        # close pipe file
         self.close()
         return greatText
 
@@ -55,14 +55,14 @@ class DataSend:
         """
         Write instruction in pipe file, your type must be client
         """
-        #open pipe file when he is not open
+        # open pipe file when he is not open
         if self.file is None or self.file.closed is True:
             self.open()
 
-        #write instruction in pipe file
+        # write instruction in pipe file
         self.file.write(msg+"\n")
 
-        #close pipe file
+        # close pipe file
         self.close()
 
     def clean(self):

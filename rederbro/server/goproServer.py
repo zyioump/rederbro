@@ -2,7 +2,6 @@ from rederbro.server.worker import Worker
 from rederbro.utils.serialManager import SerialManager
 from rederbro.command.command import Command
 import time
-import json
 
 try:
     import RPi.GPIO as GPIO
@@ -33,9 +32,9 @@ class GoproServer(Worker):
                 self.logger.info("Turned gopro {} (fake mode)".format(state))
 
             else:
-                #when fake mode is off
+                # when fake mode is off
                 if state == "on":
-                    #turn on
+                    # turn on
                     error, answer = self.arduino.sendMsg("I", "ON")
 
                     if error:
@@ -63,7 +62,7 @@ class GoproServer(Worker):
                             return self.goproOn
 
                 else:
-                    #turn off
+                    # turn off
                     if not self.goproOn:
                         self.turnGopro(True, full=False)
 
@@ -83,7 +82,6 @@ class GoproServer(Worker):
             self.goproOn = False
             return self.goproOn
 
-
     def turnRelay(self, state):
         """
         Switch relay to state value
@@ -91,12 +89,12 @@ class GoproServer(Worker):
         self.logger.info("Turn relay {}".format(state))
 
         if self.fakeMode:
-            #when fake mode is on
+            # when fake mode is on
             self.relayOn = state
             self.logger.info("Turned relay {} (fake mode)".format(state))
 
         else:
-            #when fake mode is off
+            # when fake mode is off
             if state == "on":
                 GPIO.output(self.config["relay_pin"], GPIO.HIGH)
                 self.relayOn = True
@@ -134,10 +132,9 @@ class GoproServer(Worker):
         args = {}
         args["time"] = time.asctime()
         args["goproFail"] = goproFail
-        msg = ("add_picture" , args)
+        msg = ("add_picture", args)
         cmd = Command(self.config, "campaign")
         cmd.run(msg)
-
 
     def takePic(self, force=False):
         """
@@ -156,21 +153,21 @@ class GoproServer(Worker):
             error, answer = self.arduino.sendMsg("T", "ID2")
             errorNB += 1 if error else 0
 
-            error, answer =  self.arduino.waitAnswer("ID1s")
+            error, answer = self.arduino.waitAnswer("ID1s")
             errorNB += 1 if error else 0
 
             goproFail = [(), "000000"]
             if error:
-                error, answer =  self.arduino.waitAnswer("")
+                error, answer = self.arduino.waitAnswer("")
                 goproFail[1] = answer
                 for i in range(len(answer)):
                     if answer[i] == "1":
                         goproFail[0].append(5-i)
 
-                error, answer =  self.arduino.waitAnswer("ID1s")
+                error, answer = self.arduino.waitAnswer("ID1s")
                 self.logger.error("Gopro {} failed to take picture".format(goproFail[0]))
 
-            error, answer =  self.arduino.waitAnswer("TAKEN")
+            error, answer = self.arduino.waitAnswer("TAKEN")
             errorNB += 1 if error else 0
 
             self.askCampaign(goproFail[1])
@@ -186,12 +183,11 @@ class GoproServer(Worker):
             return True
 
     def __init__(self, config):
-        #Use the __init__ of the server class
+        # Use the __init__ of the server class
         Worker.__init__(self, config, "gopro")
 
-
         try:
-            #init arduino
+            # init arduino
             self.arduino = SerialManager(self.config, self.logger, "arduino")
             self.clear()
         except:
@@ -199,7 +195,7 @@ class GoproServer(Worker):
             self.setFakeMode("on")
 
         try:
-            #init GPIO
+            # init GPIO
             GPIO.setmode(GPIO.BCM)
             GPIO.setwarnings(False)
             GPIO.setup(self.config["relay_pin"], GPIO.OUT)
@@ -208,22 +204,22 @@ class GoproServer(Worker):
             if not self.fakeMode:
                 self.setFakeMode("on")
 
-        #switch off relay to be sure that gopro are off
+        # switch off relay to be sure that gopro are off
         self.turnRelay(False)
 
         self.goproOn = False
         self.relayOn = False
 
-        #dict who link a command to a method
+        # dict who link a command to a method
         # a : (b, c)
         # a --> command name
         # b --> method who can treat the command
         # c --> if there are argument for the method
-        self.command = {\
-            "debug" : (self.setDebug, True),\
-            "fake" : (self.setFakeMode, True),\
-            "gopro" : (self.turnGopro, True),\
-            "relay" : (self.turnRelay, True),\
-            "takepic" : (self.takePic, False),\
-            "clear" : (self.clear, False)\
+        self.command = {
+            "debug": (self.setDebug, True),
+            "fake": (self.setFakeMode, True),
+            "gopro": (self.turnGopro, True),
+            "relay": (self.turnRelay, True),
+            "takepic": (self.takePic, False),
+            "clear": (self.clear, False)
         }
